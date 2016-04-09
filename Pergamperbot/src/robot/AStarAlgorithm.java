@@ -48,16 +48,16 @@ public class AStarAlgorithm {
 		/*
 		 * Initializating number of rows and columns to work with everything
 		 */
-		int numrows = 13;
-		int numcols = 10;
+		int numrows = 10;
+		int numcols = 13;
 		/*
 		 * Initializating matrices of booleans, res and obstacles to work with
 		 * it
 		 */
-		boolean[][] res = new boolean[numrows][numcols];
-		boolean[][] obstacles = createobstacles(numrows, numcols);
+		boolean[][] res = new boolean[numcols][numrows];
+		boolean[][] obstacles = createobstacles(numcols, numrows);
 
-		int[][] g = new int[numrows][numcols]; // Matrix with G for every point.
+		int[][] g = new int[numcols][numrows]; // Matrix with G for every point.
 		// Francisco's work
 		/*
 		 * Initializating sets to store our results
@@ -70,7 +70,7 @@ public class AStarAlgorithm {
 		 * Initializating goal and starting points. Also adding them to proper
 		 * sets.
 		 */
-		point goal = new point(2, 0);// Where do we wanna get with the robot
+		point goal = new point(1, 4);// Where do we wanna get with the robot
 		// int[][] heuristic = matrixh(numrows, numcols, goal.getX(),
 		// goal.getY()); TODO May be useful in the future
 
@@ -83,12 +83,12 @@ public class AStarAlgorithm {
 		boolean finished = false;
 		while (!openset.isEmpty() && !finished) {
 			System.out.println("Loop");
-			current = current(goal, g, openset, obstacles, numrows, numcols);
+			current = current(goal, g, openset, obstacles, numcols, numrows);
 
 			if (current.equals(goal)) {
 				finished = true;
 				System.out.println("Reached final State");
-				res = reconstruct_path(parent, start, numrows, numcols, goal); // TODO
+				res = /*convertMatrixforRobocode(*/reconstruct_path(parent, start, numcols, numrows, goal); // TODO
 																				// reconstruct
 				// path
 			}
@@ -122,7 +122,7 @@ public class AStarAlgorithm {
 				int tempx, tempy;
 				tempx = i.getX();
 				tempy = i.getY();
-				boolean condition = (tempx < numrows) && (tempy < numcols) && (tempx >= 0) && (tempy >= 0);
+				boolean condition = (tempx < numcols) && (tempy < numrows) && (tempx >= 0) && (tempy >= 0);
 				if (!closedset.contains(i) && condition) {
 					int tentative_g = g[current.getX()][current.getY()] + 1;
 					if (!openset.contains(i) || tentative_g < g[i.getX()][i.getY()]) {
@@ -148,9 +148,9 @@ public class AStarAlgorithm {
 	 * rows and columns returns a matrix with the path made with booleans If the
 	 * path is good, returns 1. It's always only a path.
 	 */
-	public boolean[][] reconstruct_path(HashMap<point, point> parent, point start, int numrows, int numcols,
+	public boolean[][] reconstruct_path(HashMap<point, point> parent, point start, int numcols, int numrows,
 			point goal) {
-		boolean[][] res = new boolean[numrows][numcols];
+		boolean[][] res = new boolean[numcols][numrows];
 		point compare = goal;
 		while (/*!compare.equals(goal) && */compare != null) {
 			res[compare.getX()][compare.getY()] = true;
@@ -159,8 +159,8 @@ public class AStarAlgorithm {
 		return res;
 	}
 
-	public point current(point goal, int[][] g, HashSet<point> openset, boolean[][] obstacles, int numrows,
-			int numcols) {
+	public point current(point goal, int[][] g, HashSet<point> openset, boolean[][] obstacles, int numcols,
+			int numrows) {
 		/*
 		 * Returns the node in openset with the lowest value
 		 */
@@ -172,10 +172,10 @@ public class AStarAlgorithm {
 			i = it.next();
 			x = i.getX();
 			y = i.getY();
-			resy = res.getX();
-			resx = res.getY();
-			boolean condition = (x < numrows) && (y < numcols) && (resy >= 0) && (resx >= 0) && (resx < numrows)
-					&& (resy < numcols) && (y >= 0) && (x >= 0);
+			resx = res.getX();
+			resy = res.getY();
+			boolean condition = (x < numcols) && (y < numrows) && (resy >= 0) && (resx >= 0) && (resx < numcols)
+					&& (resy < numrows) && (y >= 0) && (x >= 0);
 			if (condition) {
 				if (!obstacles[x][y] && (heuristic(x, y, goal.getX(), goal.getY())
 						+ g[x][y]) < (heuristic(resx, resy, goal.getX(), goal.getY()) + g[resx][resy])) {
@@ -187,8 +187,8 @@ public class AStarAlgorithm {
 
 	}
 
-	public boolean[][] createobstacles(int obstaclerow, int obstaclecol) {
-		boolean[][] ObsPosition = new boolean[obstaclerow][obstaclecol]; // This
+	public boolean[][] createobstacles(int obstaclecol, int obstaclerow) {
+		boolean[][] ObsPosition = new boolean[obstaclecol][obstaclerow]; // This
 																			// is
 																			// our
 																			// map
@@ -349,5 +349,17 @@ public class AStarAlgorithm {
 		ObsPosition[12][9] = false;
 
 		return ObsPosition;
+	}
+	
+	private boolean [][] convertMatrixforRobocode (boolean [][] matrix){
+		boolean [][] res = new boolean [matrix.length] [matrix[0].length];
+		for (int j = 0; j < matrix[0].length; j++) {
+			for (int i = 0; i < matrix.length; i++) {
+				if (matrix[i][j]) {
+					res [i][matrix[0].length-j-1] = true;
+				}
+			}	
+		}
+		return res;
 	}
 }
